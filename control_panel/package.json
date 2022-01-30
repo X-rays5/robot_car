@@ -2,7 +2,7 @@
   "name": "control-panel",
   "version": "1.0.0",
   "scripts": {
-    "dev": "svelte-kit dev --https",
+    "dev": "svelte-kit dev --https --host",
     "build": "svelte-kit build",
     "package": "svelte-kit package",
     "preview": "svelte-kit preview",
