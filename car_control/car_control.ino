@@ -1,12 +1,13 @@
-//#include <SoftwareSerial.h>
+#include <Arduino.h>
 #include <ArduinoJson.h>
 #include "drive_defines.hpp"
 
 #define BAUD_RATE 9600
 
 void setup() {
-  Serial.begin(BAUD_RATE);
   pinMode(13, OUTPUT);
+  digitalWrite(13, HIGH);
+  Serial.begin(BAUD_RATE);
 
   // setup motor pins
   pinMode(IN1, OUTPUT);
@@ -15,14 +16,15 @@ void setup() {
   pinMode(IN4, OUTPUT);
   pinMode(ENA, OUTPUT);
   pinMode(ENB, OUTPUT);
+
+  digitalWrite(13, LOW);
 }
 
+StaticJsonDocument<256> json;
 void loop() {
   if(Serial.available() > 0)  {
-    String data = Serial.readString();
-    DynamicJsonDocument doc(512);
-    auto json_error = deserializeJson(doc, data);
-    auto json = doc.as<JsonObject>();
+    digitalWrite(13, HIGH);
+    auto json_error = deserializeJson(json, Serial);
     if (!json_error) {
       if(json["event"] == "forward") {
         FORWARD;
@@ -35,14 +37,18 @@ void loop() {
       } else if(json["event"] == "stop") {
         STOP;
       } else {
-        DynamicJsonDocument json(256);
-        doc["error"] = "Error invalid event";
-        serializeJson(doc, Serial);
+        StaticJsonDocument<80> error;
+        error["error"] = "Unknown event type";
+        serializeJson(error, Serial);
       }
     } else {
-      DynamicJsonDocument json(256);
-      doc["error"] = "Error parsing json";
-      serializeJson(doc, Serial);
+      StaticJsonDocument<80> error;
+        error["error"] = "Missing event type";
+        serializeJson(error, Serial);
     }
-  }                            
+    json.clear();
+    digitalWrite(13, LOW);
+  } else { // No incoming data time to write status update
+
+  }                     
 }

@@ -1,6 +1,3 @@
-#pragma once
-#include <Arduino.h>
-
 //define L298n module IO Pin
 #define ENA 5
 #define ENB 6

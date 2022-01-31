@@ -41,7 +41,7 @@ export class Connection {
                 const value = event.target.value;
                 const decoder = new TextDecoder();
                 const data = decoder.decode(value);
-                console.log(data);
+                console.log('Received message',data);
                 this.#msg_queue.push(data);
             });
         });
@@ -76,14 +76,37 @@ export class Connection {
         return `0000${unique}-0000-1000-8000-008005f9b34fb`;
     }
 
-    writeValue(msg: string) {
-        const msg_obj = JSON.parse(msg); // verify json
-        const encoder = new TextEncoder();
-        const data = encoder.encode(JSON.stringify(msg_obj));
-        console.log(data.buffer);
-        this.#write_characteristic.writeValueWithoutResponse(data.buffer).catch(e => {
-            console.log(e);
-        });
+    writeValue(event_type: string) {
+        let msg_obj = undefined;
+        switch (event_type) {
+            case 'forward':
+                msg_obj = {event: 'forward'};
+                break;
+            case 'back':
+                msg_obj = {event: 'back'};
+                break;
+            case 'left':
+                msg_obj = {event: 'left'};
+                break;
+            case 'right':
+                msg_obj = {event: 'right'};
+                break;
+            case 'stop':
+                msg_obj = {event: 'stop'};
+                break;
+            default:
+                break;
+        }
+        if (typeof msg_obj !== 'undefined') {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(JSON.stringify(msg_obj));
+            console.log('Sending message', data.buffer);
+            this.#write_characteristic.writeValueWithoutResponse(data.buffer).catch(e => {
+                console.log(e);
+            });
+        } else {
+            throw new Error('Invalid event type');
+        }
     }
 
     getPrimaryService(service: BluetoothServiceUUID) {
