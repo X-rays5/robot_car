@@ -40,7 +40,7 @@ function checkSupport() {
             }
         });
         navigator.bluetooth.addEventListener('availabilitychanged', event => {
-            const nobluetooth_overlay = document.querySelector('#devicenosupport').hidden  = event.value;
+            document.querySelector('#devicenosupport').hidden  = event.value;
         });
     }
 }

@@ -52,8 +52,32 @@
     }
 
     async function sendMessage() {
-        if (connValid()) {
+        if (connValid() && conn.isConnected()) {
             await conn.writeValue(msg);
+        }
+    }
+
+    async function sendEvent(event: string) {
+        if (connValid() && conn.isConnected()) {
+            switch (event) {
+                case 'forward':
+                    conn.writeValue('{"event": "forward"}');
+                    break;
+                case 'back':
+                    conn.writeValue('{"event": "back"}');
+                    break;
+                case 'left':
+                    conn.writeValue('{"event": "left"}');
+                    break;
+                case 'right':
+                    conn.writeValue('{"event": "right"}');
+                    break;
+                case 'stop':
+                    conn.writeValue('{"event": "stop"}');
+                    break;
+                default:
+                    break;
+            }
         }
     }
 </script>
@@ -62,6 +86,15 @@
     <button type="button" class="btn btn-primary" on:click={connectBluetooth}>Connect to device</button>
     <button type="button" class="btn btn-primary" on:click={disconnectBluetooth}>Disconnect device</button>
     <br/>
-    <input bind:value={msg}/>
-    <button type="button" class="btn btn-primary" on:click={sendMessage}>Send dbg msg</button>
+    {#if conn_connected}
+        <input bind:value={msg}/>
+        <button type="button" class="btn btn-primary" on:click={sendMessage}>Send dbg msg</button>
+        <div class="controlls">
+            <button type="button" class="btn btn-primary" on:click={() => sendEvent('forward')}>Forward</button>
+            <button type="button" class="btn btn-primary" on:click={() => sendEvent('back')}>Back</button>
+            <button type="button" class="btn btn-primary" on:click={() => sendEvent('left')}>Left</button>
+            <button type="button" class="btn btn-primary" on:click={() => sendEvent('right')}>Right</button>
+            <button type="button" class="btn btn-primary" on:click={() => sendEvent('stop')}>Stop</button>
+        </div>
+    {/if}
 </div>
