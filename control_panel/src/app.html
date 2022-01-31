@@ -4,9 +4,11 @@
 		<meta charset="utf-8" />
 		<meta name="description" content="" />
 		<link rel="icon" href="%svelte.assets%/favicon.png" />
-		<link rel="stylesheet" href="%svelte.assets%/static/app.css">
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css"/>
+		<link rel="stylesheet" href="%svelte.assets%/assets/app.css">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css" integrity="sha512-GQGU0fMMi238uA+a/bdWJfpUGKUkBdgfFdgBm72SUQ6BeyWjoY/ton0tEjH+OSH9iP4Dfh+7HM0I9f5eR0L/4w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+		<script src="%svelte.assets%/assets/support.js"></script>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>ELEGOO Control Panel</title>
 		%svelte.head%
 	</head>
 	<body>
@@ -16,24 +18,7 @@
 			</div>
 		</noscript>
 		<script>
-			if (typeof navigator.bluetooth === 'undefined' || navigator.bluetooth === null || typeof navigator.bluetooth.getDevices !== "function") {
-				console.log('Browser doesn\'t support bluetooth');
-				const container = document.createElement('div');
-				container.classList.add('overlay');
-				document.body.append(container);
-				const title = document.createElement('h4');
-				title.innerHTML = "This browser doesn't support bluetooth";
-				container.appendChild(title);
-				const fix1 = document.createElement('p');
-				fix1.innerHTML = "Make sure you're using a chromium based browser.";
-				container.appendChild(fix1);
-				const fix2 = document.createElement('p');
-				fix2.innerHTML = 'If you are using a chromium based browser make sure the enable-experimental-web-platform-features flag is enabled.';
-				container.appendChild(fix2);
-			} else {
-				console.log("browser supports the bluetooth api");
-				console.log(navigator.bluetooth);
-			}
+			checkSupport();
 		</script>
 		<div id="svelte">%svelte.body%</div>
 	</body>
