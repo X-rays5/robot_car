@@ -3,7 +3,7 @@ This program was developed on a ELEGOO smart robot car kit 3.0. While not tested
 
 # Technologies
 - Languages: c++, typescript
-- Libraries: ArduinoJson, Svelte
+- Libraries: ArduinoJson, Svelte, Bootstrap, Font Awesome
 - Hardware: ELEGOO smart robot car kit 3.0
 - Hosting: Cloudflare pages
 - misc: Node.js, BLE, Bluetooth web api
