@@ -16,6 +16,31 @@ export class Connection {
     async getDevice(options?: RequestDeviceOptions): Promise<BluetoothDevice> {
         await navigator.bluetooth.requestDevice(options).then(device => {
             this.device = device;
+            this.device.addEventListener('gattserverdisconnected', () => {
+                console.log(`Lost bluetooth connection`);
+                if (this.#disconnectCB) {
+                    this.#disconnectCB();
+                }
+                if (this.#reconnect) {
+                    console.log(`Attempting to reconnect`);
+                    let tries = 0;
+                    const interval = setInterval(async () => {
+                        await this.connectDevice().then(connected => {
+                            tries += 1;
+                            if (connected) {
+                                console.log(`Reconnected to ${this.device.name}`);
+                                clearInterval(interval);
+                            } else {
+                                console.log(`Failed to reconnect`);
+                                if (tries >= 30) {
+                                    console.log(`Failed to reconnect within 30 seconds`);
+                                    clearInterval(interval);
+                                }
+                            }
+                        }).catch(()=>{;}); // don't care for exceptions
+                    }, 1000);
+                }
+            });
         }).catch(e => {
             console.log(e);
             alert('The was a unknown error try disconnecting all other bluetooth devices');
@@ -53,27 +78,6 @@ export class Connection {
 
     disconnectDevice() {
         this.device.gatt.disconnect();
-    }
-
-    _onDisconnect() {
-        console.log(`Lost connection to ${this.device.name}`);
-        if (this.#disconnectCB) {
-            this.#disconnectCB();
-        }
-        if (this.#reconnect) {
-            console.log(`Attempting reconnect to ${this.device.name}`);
-            this.connectDevice().then(connected => {
-                if (connected) {
-                    console.log(`Reconnected to ${this.device.name}`);
-                } else {
-                    console.log(`Failed to reconnect to ${this.device.name}`);
-                }
-            })
-        }
-    }
-
-    static getUUID(unique: string): string {
-        return `0000${unique}-0000-1000-8000-008005f9b34fb`;
     }
 
     writeValue(event_type: string) {

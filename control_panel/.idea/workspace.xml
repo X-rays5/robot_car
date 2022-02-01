@@ -2,15 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="aebcd79a-d01d-4994-b723-22be93560173" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../car_control/.vscode/c_cpp_properties.json" beforeDir="false" afterPath="$PROJECT_DIR$/../car_control/.vscode/c_cpp_properties.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../car_control/car_control.ino" beforeDir="false" afterPath="$PROJECT_DIR$/../car_control/car_control.ino" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../car_control/drive_defines.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/../car_control/drive_defines.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/control_panel.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/control_panel.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jsLibraryMappings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/app.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/lib/connection.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/connection.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/routes/index.svelte" beforeDir="false" afterPath="$PROJECT_DIR$/src/routes/index.svelte" afterDir="false" />
     </list>
@@ -100,7 +92,8 @@
       <workItem from="1643580541352" duration="8050000" />
       <workItem from="1643588668519" duration="27000" />
       <workItem from="1643588706348" duration="1780000" />
-      <workItem from="1643641515592" duration="15858000" />
+      <workItem from="1643641515592" duration="15990000" />
+      <workItem from="1643726728991" duration="2880000" />
     </task>
     <servers />
   </component>

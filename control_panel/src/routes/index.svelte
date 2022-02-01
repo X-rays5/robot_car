@@ -8,12 +8,12 @@
 
     let conn: Connection
     let conn_connected = false;
+    let connection_check_interval;
     let msg = '{"event": "forward"}';
 
     function connValid(): boolean {
         return typeof conn !== 'undefined';
     }
-
 
     async function connectBluetooth() {
         conn = new Connection(false);
@@ -44,6 +44,26 @@
                 console.log(e);
             });
         });
+        if (!connection_check_interval) {
+            connection_check_interval = setInterval(() => {
+                conn_connected = connValid() && conn.isConnected();
+            }, 500);
+        }
+        const forward_btn = document.getElementById('forward-btn');
+        const back_btn = document.getElementById('back-btn');
+        const left_btn = document.getElementById('left-btn');
+        const right_btn = document.getElementById('right-btn');
+        const stop_btn = document.getElementById('stop-btn');
+
+        forward_btn.onpointerdown = () => conn.writeValue('forward');
+        forward_btn.onpointerup = () => conn.writeValue('stop');
+        back_btn.onpointerdown = () => conn.writeValue('back');
+        back_btn.onpointerup = () => conn.writeValue('stop');
+        left_btn.onpointerdown = () => conn.writeValue('left');
+        left_btn.onpointerup = () => conn.writeValue('stop');
+        right_btn.onpointerdown = () => conn.writeValue('right');
+        right_btn.onpointerup = () => conn.writeValue('stop');
+        stop_btn.onpointerdown = () => conn.writeValue('stop');
     }
 
     async function disconnectBluetooth() {
@@ -56,12 +76,6 @@
     async function sendMessage() {
         if (connValid() && conn.isConnected()) {
             await conn.writeValue(msg);
-        }
-    }
-
-    async function sendEvent(event: string) {
-        if (connValid() && conn.isConnected()) {
-            conn.writeValue(event);
         }
     }
 </script>
@@ -78,13 +92,13 @@
         <button type="button" class="btn btn-primary" on:click={sendMessage}>Send dbg msg</button>
         <div class="controls">
             <p></p>
-            <button type="button" class="out-btn ctrl-btn btn btn-primary" on:click={() => sendEvent('forward')}><i class="fa-solid fa-arrow-up"></i></button>
+            <button type="button" id="forward-btn" class="out-btn ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-up"></i></button>
             <p></p>
-            <button type="button" class="ctrl-btn btn btn-primary" on:click={() => sendEvent('left')}><i class="fa-solid fa-arrow-left"></i></button>
-            <button type="button" class="ctrl-btn btn btn-primary" on:click={() => sendEvent('stop')}><i class="fa-solid fa-ban"></i></button>
-            <button type="button" class="ctrl-btn btn btn-primary" on:click={() => sendEvent('right')}><i class="fa-solid fa-arrow-right"></i></button>
+            <button type="button" id="left-btn" class="ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-left"></i></button>
+            <button type="button" id="stop-btn" class="ctrl-btn btn btn-primary"><i class="fa-solid fa-ban"></i></button>
+            <button type="button" id="right-btn" class="ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-right"></i></button>
             <p></p>
-            <button type="button" class="out-btn ctrl-btn btn btn-primary" on:click={() => sendEvent('back')}><i class="fa-solid fa-arrow-down"></i></button>
+            <button type="button" id="back-btn" class="out-btn ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-down"></i></button>
             <p></p>
         </div>
     {/if}
