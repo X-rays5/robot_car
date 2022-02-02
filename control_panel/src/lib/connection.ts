@@ -1,3 +1,5 @@
+import {isJsonString} from '$lib/utility';
+
 export class Connection {
     /**
      * @param reconnect Reconnect automatically on connection loss
@@ -59,15 +61,44 @@ export class Connection {
     }
 
     startNotifications() {
-        this.#notification_characteristric.startNotifications().then(() => {
-            this.#notification_characteristric.addEventListener('characteristicvaluechanged', (event) => {
+        this.#notification_characteristic.startNotifications().then(() => {
+            this.#notification_characteristic.addEventListener('characteristicvaluechanged', (event) => {
+                const decoder = new TextDecoder();
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
-                const value = event.target.value;
-                const decoder = new TextDecoder();
-                const data = decoder.decode(value);
-                console.log('Received message',data);
-                this.#msg_queue.push(data);
+                let msg = decoder.decode(event.target.value);
+                msg = msg.trim();
+
+                // check if message is split over multiple packets
+                if (msg.length > 0) {
+                    if (isJsonString(msg)) {
+                        this.#msg_queue.push(msg);
+                    } else {
+                        // Timed out
+                        if (this.#msg_queue_constructing_timeout !== 0 && Date.now() - this.#msg_queue_constructing_timeout > 50) {
+                            this.#msg_queue_constructing = '';
+                        }
+                        // check if start of message
+                        if (this.#msg_queue_constructing.length === 0) {
+                            if (msg.startsWith('{') || msg.startsWith('[')) {
+                                this.#msg_queue_constructing = msg;
+                                this.#msg_queue_constructing_timeout = Date.now();
+                            } else {
+                                console.warn(`Message not starting with { or [: ${msg}`);
+                            }
+                        } else {
+                            this.#msg_queue_constructing += this.#msg_queue_constructing.concat(msg);
+                            // check if end of message
+                            if (isJsonString(this.#msg_queue_constructing)) {
+                                this.#msg_queue.push(this.#msg_queue_constructing);
+                                this.#msg_queue_constructing = '';
+                                this.#msg_queue_constructing_timeout = 0;
+                            } else {
+                                this.#msg_queue_constructing_timeout = Date.now();
+                            }
+                        }
+                    }
+                }
             });
         });
     }
@@ -80,32 +111,30 @@ export class Connection {
         this.device.gatt.disconnect();
     }
 
-    writeValue(event_type: string) {
+    #events: Set<string> = new Set(['forward', 'back', 'left', 'right', 'stop', 'ultra-left', 'ultra-right', 'ultra-stop', 'ultra-reset']);
+    writeValue(event_type: string, args?: object) {
         let msg_obj = undefined;
-        switch (event_type) {
-            case 'forward':
-                msg_obj = {event: 'forward'};
-                break;
-            case 'back':
-                msg_obj = {event: 'back'};
-                break;
-            case 'left':
-                msg_obj = {event: 'left'};
-                break;
-            case 'right':
-                msg_obj = {event: 'right'};
-                break;
-            case 'stop':
-                msg_obj = {event: 'stop'};
-                break;
-            default:
-                break;
+        if (typeof args !== 'undefined') {
+            if (this.#events.has(event_type)) {
+                msg_obj = {
+                    event: event_type,
+                    args: args
+                };
+            }
+        } else {
+            if (this.#events.has(event_type)) {
+                msg_obj = {event: event_type};
+            }
         }
         if (typeof msg_obj !== 'undefined') {
             const encoder = new TextEncoder();
             const data = encoder.encode(JSON.stringify(msg_obj));
-            console.log('Sending message', data.buffer);
-            this.#write_characteristic.writeValueWithoutResponse(data.buffer).catch(e => {
+            console.log('Sending message', data);
+            const decoder = new TextDecoder();
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            console.log(decoder.decode(data));
+            this.#write_characteristic.writeValueWithoutResponse(data).catch(e => {
                 console.log(e);
             });
         } else {
@@ -130,20 +159,18 @@ export class Connection {
     }
 
     set setNotificationCharacteristic(characteristic: BluetoothRemoteGATTCharacteristic) {
-        this.#notification_characteristric = characteristic;
+        this.#notification_characteristic = characteristic;
     }
 
     get getNotificationCharacteristic(): BluetoothRemoteGATTCharacteristic {
-        return this.#notification_characteristric;
+        return this.#notification_characteristic;
     }
 
     get lastMessage(): string {
         if (this.#msg_queue.length > 0) {
-            const tmp = this.#msg_queue[0];
-            this.#msg_queue.shift();
-            return tmp
+            return this.#msg_queue.shift();
         } else {
-            return '';
+            return undefined;
         }
     }
 
@@ -155,6 +182,8 @@ export class Connection {
     #disconnectCB: () => never;
     #reconnect: boolean;
     #write_characteristic: BluetoothRemoteGATTCharacteristic;
-    #notification_characteristric: BluetoothRemoteGATTCharacteristic;
+    #notification_characteristic: BluetoothRemoteGATTCharacteristic;
     #msg_queue: string[] = [];
+    #msg_queue_constructing = '';
+    #msg_queue_constructing_timeout = 0;
 }
