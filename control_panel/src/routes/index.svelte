@@ -151,8 +151,8 @@
         </div>
         <h3>Linetracking</h3>
         <div id="linetracking-controls">
-            <button type="button" class="ctrl-btn btn btn-primary" on:click={() => conn.writeValue('line-track-start')}><i class="fa-solid fa-arrow-left"></i></button>
-            <button type="button" class="ctrl-btn btn btn-primary" on:click={() => conn.writeValue('line-track-stop')}><i class="fa-solid fa-arrow-right"></i></button>
+            <button type="button" class="ctrl-btn btn btn-primary" on:click={() => conn.writeValue('line-track-start')}><i class="fa-solid fa-car-side"></i>&nbsp;<i class="fa-solid fa-grip-lines"></i></button>
+            <button type="button" class="ctrl-btn btn btn-primary" on:click={() => conn.writeValue('line-track-stop')}><i class="fa-solid fa-ban"></i>&nbsp;<i class="fa-solid fa-grip-lines"></i></button>
         </div>
     {/if}
 </div>
