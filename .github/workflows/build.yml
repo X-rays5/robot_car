@@ -19,4 +19,5 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm run buld
+    - run: npm run build
+      working-directory: ./control_panel
