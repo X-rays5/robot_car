@@ -7,13 +7,26 @@
 #include <Arduino.h>
 #include <Servo.h>
 #include <ArduinoJson.h>
+#include <IRremote.h>
 #include "drive_defines.hpp"
 
 #define BAUD_RATE 9600
-#define ULTRASONIC_PIN 3
+#define ULTRASONIC_SERVO_PIN 3
+#define ULTRASONIC_PIN_ECHO A4
+#define ULTRASONIC_PIN_TRIGGER A5
+#define ULTRASONIC_LEFT ultra_sonic_moving_left = true; ultra_sonic_moving_right = false
+#define ULTRASONIC_RIGHT ultra_sonic_moving_left = false; ultra_sonic_moving_right = true
+#define ULTRASONIC_STOP ultra_sonic_moving_left = false; ultra_sonic_moving_right = false
+#define ULTRASONIC_RESET ULTRASONIC_STOP; SetUltrasonicPos(90)
+#define LINE_TRACKING_1 digitalRead(10)
+#define LINE_TRACKING_2 digitalRead(4)
+#define LINE_TRACKING_3 digitalRead(2)
+#define IR_PIN 12
 
 Servo ultrasonic_servo;
-
+unsigned long time_since_ultrasonic_move = 0;
+bool ultra_sonic_moving_left = false;
+bool ultra_sonic_moving_right = false;
 int GetUltrasonicPos() {
   return ultrasonic_servo.read();
 }
@@ -30,6 +43,18 @@ void DecreaseUltrasonicPos(int decrease_by) {
   ultrasonic_servo.write(ultrasonic_servo.read() - decrease_by);
 }
 
+int CheckDistance() {
+  digitalWrite(ULTRASONIC_PIN_TRIGGER, LOW);   
+  delayMicroseconds(2);
+  digitalWrite(ULTRASONIC_PIN_TRIGGER, HIGH);  
+  delayMicroseconds(20);
+  digitalWrite(ULTRASONIC_PIN_TRIGGER, LOW);   
+  float Fdistance = pulseIn(ULTRASONIC_PIN_ECHO, HIGH);  
+  Fdistance= Fdistance/58;       
+  return (int)Fdistance;
+}  
+
+IRrecv ir_receiver(IR_PIN);
 void setup() {
   pinMode(13, OUTPUT);
   digitalWrite(13, HIGH);
@@ -43,30 +68,66 @@ void setup() {
   pinMode(ENA, OUTPUT);
   pinMode(ENB, OUTPUT);
 
-  ultrasonic_servo.attach(ULTRASONIC_PIN);
+  // setup ultrasonic pins
+  pinMode(ULTRASONIC_PIN_ECHO, INPUT);    
+  pinMode(ULTRASONIC_PIN_TRIGGER, OUTPUT);
+
+  ultrasonic_servo.attach(ULTRASONIC_SERVO_PIN);
   SetUltrasonicPos(90);
+
+  // setup ir
+  ir_receiver.enableIRIn();
 
   digitalWrite(13, LOW);
 }
 
-unsigned long time_since_update = 0;
-unsigned long time_since_ultrasonic_move = 0;
-bool ultra_sonic_moving_left = false;
-bool ultra_sonic_moving_right = false;
-#define ULTRASOUND_LEFT ultra_sonic_moving_left = true; ultra_sonic_moving_right = false
-#define ULTRASOUND_RIGHT ultra_sonic_moving_left = false; ultra_sonic_moving_right = true
-#define ULTRASOUND_STOP ultra_sonic_moving_left = false; ultra_sonic_moving_right = false
-#define ULTRASOUND_RESET ULTRASOUND_STOP; SetUltrasonicPos(90)
-void loop() {
-  if (millis() - time_since_ultrasonic_move >= 20) {
-    if(ultra_sonic_moving_left) {
-      IncreaseUltrasonicPos(1);
-    } else if(ultra_sonic_moving_right) {
-      DecreaseUltrasonicPos(1);
-    }
-    time_since_ultrasonic_move = millis();
-  }
+bool line_tracking = false;
 
+void IrLoop() {
+  if (ir_receiver.decode()) {
+    unsigned long msg = ir_receiver.decodedIRData.command;
+    ir_receiver.resume();
+
+    Serial.println(msg);
+    if (msg == 70) {
+      if(!line_tracking) {
+        FORWARD;
+      }
+    } else if (msg == 21) {
+      if(!line_tracking) {
+        BACK;
+      }
+    } else if (msg == 68) {
+      if(!line_tracking) {
+        LEFT;
+      }
+    } else if (msg == 67) {
+      if(!line_tracking) {
+        RIGHT;
+      }
+    } else if (msg == 64) {
+      if(!line_tracking) {
+        STOP;
+      }
+    } else if (msg == 66) {
+      ULTRASONIC_LEFT;
+    } else if (msg == 74) {
+      ULTRASONIC_RIGHT;
+    } else if (msg == 82) {
+      ULTRASONIC_STOP;
+    } else if (msg == 22) {
+      ULTRASONIC_RESET;
+    } else if (msg == 25) {
+      STOP;
+      line_tracking = true;
+    } else if (msg == 13) {
+      line_tracking = false;
+      STOP;
+    }
+  }
+}
+
+void MsgLoop() {
   if (Serial.available()) {
     digitalWrite(13, HIGH);
     String msg;
@@ -83,23 +144,39 @@ void loop() {
     if (msg[msg.length()-1] == ';') {
       msg.remove(msg.length()-1, 1);
       if(msg == "forward") {
-        FORWARD;
+        if(!line_tracking) {
+          FORWARD;
+        }
       } else if(msg == "back") {
-        BACK;
+        if(!line_tracking) {
+          BACK;
+        }
       } else if(msg == "left") {
-        LEFT;
+        if(!line_tracking) {
+          LEFT;
+        }
       } else if(msg == "right") {
-        RIGHT;
+        if(!line_tracking) {
+          RIGHT;
+        }
       } else if(msg == "stop") {
-        STOP;
+        if(!line_tracking) {
+          STOP;
+        }
       } else if(msg == "ultra-left") {
-        ULTRASOUND_LEFT;
+        ULTRASONIC_LEFT;
       } else if(msg == "ultra-right") {
-        ULTRASOUND_RIGHT;
-      } else if (msg == "ultra-stop") {
-        ULTRASOUND_STOP;
+        ULTRASONIC_RIGHT;
+      } else if(msg == "ultra-stop") {
+        ULTRASONIC_STOP;
       } else if(msg == "ultra-reset") {
-        ULTRASOUND_RESET;
+        ULTRASONIC_RESET;
+      } else if(msg == "line-track-start") {
+        STOP;
+        line_tracking = true;
+      } else if(msg == "line-track-stop") {
+        line_tracking = false;
+        STOP;
       } else {
         StaticJsonDocument<80> error;
         error["error"] = "Unknown event type";
@@ -108,12 +185,53 @@ void loop() {
     }
     digitalWrite(13, LOW);
   }
+}
+
+unsigned long time_since_update = 0;
+void loop() {
+  if (millis() - time_since_ultrasonic_move >= 20) {
+    if(ultra_sonic_moving_left) {
+      IncreaseUltrasonicPos(1);
+    } else if(ultra_sonic_moving_right) {
+      DecreaseUltrasonicPos(1);
+    }
+    time_since_ultrasonic_move = millis();
+  }
+  if (line_tracking) {
+    if(LINE_TRACKING_2) {
+      FORWARD;
+    } else if(LINE_TRACKING_1) { 
+      LEFT;
+      while(LINE_TRACKING_1);
+      FORWARD;                          
+    }   
+    else if(LINE_TRACKING_3) {
+      RIGHT;
+      while(LINE_TRACKING_3); 
+      FORWARD;
+    }
+  }
+
+  IrLoop();
+  MsgLoop();
+
   if (millis() - time_since_update >= 500) {
     {
       StaticJsonDocument<128> json;
       json["type"] = "status";
       json["category"] = "ultrasonic";
       json["data"]["pos"] = GetUltrasonicPos();
+      json["data"]["distance"] = CheckDistance();
+      serializeJson(json, Serial);
+    }
+    delay(1);
+    {
+      StaticJsonDocument<128> json;
+      json["type"] = "status";
+      json["category"] = "linetracking";
+      json["data"][0] = LINE_TRACKING_1;
+      json["data"][1] = LINE_TRACKING_2;
+      json["data"][2] = LINE_TRACKING_3;
       serializeJson(json, Serial);
     }
     time_since_update = millis();

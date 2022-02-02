@@ -15,7 +15,8 @@
     let state = {
         ultrasonic: {
             position: 90,
-        }
+        },
+        linetracking: []
     }
 
     function connValid(): boolean {
@@ -57,7 +58,6 @@
                     let msg = conn.lastMessage;
                     if (typeof msg !== 'undefined') {
                         while (typeof msg !== 'undefined') {
-                            console.log(msg);
                             let msg_obj = JSON.parse(msg);
                             if (typeof msg_obj.error !== 'undefined') {
                                 console.log(msg_obj.error);
@@ -67,6 +67,10 @@
                             if (msg_obj.type === 'status') {
                                 if (msg_obj.category === 'ultrasonic') {
                                     state.ultrasonic.position = msg_obj.data.pos;
+                                    console.info(msg_obj.data);
+                                } else if (msg_obj.category === 'linetracking') {
+                                    state.linetracking = msg_obj.data;
+                                    console.info(msg_obj.data);
                                 } else {
                                     console.log(`Unknown message type: ${msg_obj.type}`);
                                 }
@@ -145,6 +149,11 @@
             <button type="button" class="ctrl-btn btn btn-primary" on:click={() => conn.writeValue('ultra-reset')}><i class="fa-solid fa-ban"></i></button>
             <button type="button" id="ultrasonic-right-btn" class="ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-right"></i></button>
         </div>
+        <h3>Linetracking</h3>
+        <div id="linetracking-controls">
+            <button type="button" class="ctrl-btn btn btn-primary" on:click={() => conn.writeValue('line-track-start')}><i class="fa-solid fa-arrow-left"></i></button>
+            <button type="button" class="ctrl-btn btn btn-primary" on:click={() => conn.writeValue('line-track-stop')}><i class="fa-solid fa-arrow-right"></i></button>
+        </div>
     {/if}
 </div>
 
@@ -174,6 +183,15 @@
     #ultrasonic-controls {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: [row] auto;
+        max-width: 90%;
+        min-width: 0;
+        min-height: 0;
+    }
+
+    #linetracking-controls {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
         grid-template-rows: [row] auto;
         max-width: 90%;
         min-width: 0;

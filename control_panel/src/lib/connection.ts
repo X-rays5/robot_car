@@ -111,7 +111,7 @@ export class Connection {
         this.device.gatt.disconnect();
     }
 
-    #events: Set<string> = new Set(['forward', 'back', 'left', 'right', 'stop', 'ultra-left', 'ultra-right', 'ultra-stop', 'ultra-reset']);
+    #events: Set<string> = new Set(['forward', 'back', 'left', 'right', 'stop', 'ultra-left', 'ultra-right', 'ultra-stop', 'ultra-reset', 'line-track-start', 'line-track-stop']);
     writeValue(event_type: string) {
         if (this.#events.has(event_type)) {
             event_type += ';';
