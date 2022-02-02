@@ -1,3 +1,9 @@
+// Since ArduinoBle won't work because the mtu is locked at 23 bytes
+// web bluetooth denies requests larger then the max payload instead of splitting them up
+// so incoming messages will always need to be 20 bytes max
+// but we are able to send more then 20 bytes succesfully which will cant then be combined again by the connected client
+// so incoming messages will be short plain text messages but outgoing messages will be JSON
+
 #include <Arduino.h>
 #include <Servo.h>
 #include <ArduinoJson.h>
@@ -61,46 +67,45 @@ void loop() {
     time_since_ultrasonic_move = millis();
   }
 
-  if(Serial.available() > 0)  {
+  if (Serial.available()) {
     digitalWrite(13, HIGH);
-    DynamicJsonDocument json(128);
-    auto json_error = deserializeJson(json, Serial);
-    if (json.overflowed()) {
-      StaticJsonDocument<80> error;
-        error["error"] = "Received msg was too long";
-        serializeJson(error, Serial);
-        return;
+    String msg;
+    while (Serial.available()) {
+      char c = Serial.read();
+      if (c == ';') {
+        msg.concat(c);
+        break;
+      } else {
+        msg.concat(c);
+      }
+      delay(5);
     }
-    if (!json_error) {
-      if(json["event"] == "forward") {
+    if (msg[msg.length()-1] == ';') {
+      msg.remove(msg.length()-1, 1);
+      if(msg == "forward") {
         FORWARD;
-      } else if(json["event"] == "back") {
+      } else if(msg == "back") {
         BACK;
-      } else if(json["event"] == "left") {
+      } else if(msg == "left") {
         LEFT;
-      } else if(json["event"] == "right") {
+      } else if(msg == "right") {
         RIGHT;
-      } else if(json["event"] == "stop") {
+      } else if(msg == "stop") {
         STOP;
-      } else if(json["event"] == "ultra-left") {
+      } else if(msg == "ultra-left") {
         ULTRASOUND_LEFT;
-      } else if(json["event"] == "ultra-right") {
+      } else if(msg == "ultra-right") {
         ULTRASOUND_RIGHT;
-      } else if (json["event"] == "ultra-stop") {
+      } else if (msg == "ultra-stop") {
         ULTRASOUND_STOP;
-      } else if(json["event"] == "ultra-reset") {
+      } else if(msg == "ultra-reset") {
         ULTRASOUND_RESET;
       } else {
         StaticJsonDocument<80> error;
         error["error"] = "Unknown event type";
         serializeJson(error, Serial);
       }
-    } else {
-      StaticJsonDocument<80> error;
-      error["error"] = "Missing event type";
-      serializeJson(error, Serial);
     }
-    serializeJson(json, Serial);
     digitalWrite(13, LOW);
   }
   if (millis() - time_since_update >= 500) {

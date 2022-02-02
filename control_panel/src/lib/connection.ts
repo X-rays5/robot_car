@@ -112,28 +112,15 @@ export class Connection {
     }
 
     #events: Set<string> = new Set(['forward', 'back', 'left', 'right', 'stop', 'ultra-left', 'ultra-right', 'ultra-stop', 'ultra-reset']);
-    writeValue(event_type: string, args?: object) {
-        let msg_obj = undefined;
-        if (typeof args !== 'undefined') {
-            if (this.#events.has(event_type)) {
-                msg_obj = {
-                    event: event_type,
-                    args: args
-                };
-            }
-        } else {
-            if (this.#events.has(event_type)) {
-                msg_obj = {event: event_type};
-            }
-        }
-        if (typeof msg_obj !== 'undefined') {
+    writeValue(event_type: string) {
+        if (this.#events.has(event_type)) {
+            event_type += ';';
             const encoder = new TextEncoder();
-            const data = encoder.encode(JSON.stringify(msg_obj));
-            console.log('Sending message', data);
-            const decoder = new TextDecoder();
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            console.log(decoder.decode(data));
+            const data = encoder.encode(event_type);
+            if (data.byteLength > 20) {
+                console.error('Cannot write more than 20 bytes');
+                return;
+            }
             this.#write_characteristic.writeValueWithoutResponse(data).catch(e => {
                 console.log(e);
             });
