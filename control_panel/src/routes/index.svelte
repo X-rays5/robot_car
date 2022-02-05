@@ -119,7 +119,56 @@
             await conn.writeValue(msg);
         }
     }
+
+    async function keyDown(e) {
+        switch (e.keyCode) {
+            case 65:
+            case 37:
+                await conn.writeValue('left');
+                break;
+            case 87:
+            case 38:
+                await conn.writeValue('forward');
+                break;
+            case 68:
+            case 39:
+                await conn.writeValue('right');
+                break;
+            case 83:
+            case 40:
+                await conn.writeValue('back');
+                break;
+            case 81:
+                await conn.writeValue('ultra-left');
+                break;
+            case 69:
+                await conn.writeValue('ultra-right');
+                break;
+        }
+    }
+
+    async function keyUp(e) {
+        switch (e.keyCode) {
+            case 65:
+            case 37:
+            case 87:
+            case 38:
+            case 68:
+            case 39:
+            case 83:
+            case 40:
+                await conn.writeValue('stop');
+                break;
+            case 81:
+            case 69:
+                await conn.writeValue('ultra-stop');
+                break;
+        }
+    }
 </script>
+
+<!-- special svelte tags -->
+<svelte:window on:keydown={keyDown} on:keyup={keyUp}/>
 
 <!-- HTML -->
 <div>
