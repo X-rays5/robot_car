@@ -1,6 +1,7 @@
 <!-- script -->
 <script lang="ts">
     import {Connection} from "$lib/connection";
+    import {onMount} from "svelte";
 
     const service_uuid = 0xffe0;
     const notification_uuid = 0xffe1;
@@ -165,6 +166,57 @@
                 break;
         }
     }
+
+    onMount(() => {
+        window.addEventListener('gamepadconnected', (e) => {
+            const gamepad = e.gamepad;
+            if (gamepad.mapping === 'standard') {
+                console.info(`%cFound supported gamepad: ${gamepad.id}`, 'color: white');
+            } else {
+                console.warn(`Unsupported gamepad ${gamepad.id}`);
+            }
+        });
+        if (navigator.getGamepads().length > 0) {
+            alert('A gamepad was detected. If you want to use it, please press a random button on the gamepad.');
+        }
+        setInterval(() => {
+            if (connValid() && conn.isConnected()) {
+                if (navigator.getGamepads().length > 0) {
+                    for (let i = 0; i < navigator.getGamepads().length; i++) {
+                        const gamepad = navigator.getGamepads()[i];
+                        if (gamepad) {
+                            if (gamepad.mapping === 'standard') {
+                                if (gamepad.axes[0] > 0.2) {
+                                    conn.writeValue('right');
+                                } else if (gamepad.axes[0] < -0.2) {
+                                    conn.writeValue('left');
+                                }
+                                if (gamepad.buttons[7].pressed) {
+                                    conn.writeValue('forward');
+                                } else if (gamepad.buttons[6].pressed) {
+                                    conn.writeValue('back');
+                                }
+                                if (gamepad.axes[1] > 0.2) {
+                                    conn.writeValue('stop');
+                                }
+                                if (gamepad.buttons[4].pressed) {
+                                    conn.writeValue('ultra-left');
+                                } else if (gamepad.buttons[5].pressed) {
+                                    conn.writeValue('ultra-right');
+                                }
+                                if (gamepad.buttons[1].pressed) {
+                                    conn.writeValue('ultra-stop');
+                                }
+                                if (gamepad.buttons[3].pressed) {
+                                    conn.writeValue('ultra-reset');
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }, 50)
+    })
 </script>
 
 <!-- special svelte tags -->
