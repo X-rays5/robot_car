@@ -4,7 +4,7 @@
 		<meta charset="utf-8" />
 		<meta name="description" content="" />
 		<link rel="icon" href="%svelte.assets%/favicon.png" />
-		<link rel="stylesheet" href="%svelte.assets%/assets/app.css">
+		<!--<link rel="stylesheet" href="%svelte.assets%/assets/app.css">-->
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTnHg4CGR2D7kSs0v4LLanw2qksYuRlEzO+tcaEPQogQ0KaoGN26/zrn20ImR1DfuLWnOo7aBA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.3/css/bootstrap.min.css" integrity="sha512-GQGU0fMMi238uA+a/bdWJfpUGKUkBdgfFdgBm72SUQ6BeyWjoY/ton0tEjH+OSH9iP4Dfh+7HM0I9f5eR0L/4w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 		<script src="%svelte.assets%/assets/support.js"></script>
@@ -18,9 +18,18 @@
 				<p><b>This website requires javascript to be enabled</b></p>
 			</div>
 		</noscript>
+		<div id="browsersupport" hidden>
+			<h4>This browser doesn't support bluetooth</h4>
+			<p>Make sure you are using a chomium based browser.</p>
+			<p>If you are using a chromium based browser make sure the enable-experimental-web-platform-features flag is enabled.</p>
+		</div>
+		<div id="devicesupport" hidden>
+			<h4>This device doesn't support bluetooth</h4>
+			<p>Make sure that bluetooth is enabled</p>
+		</div>
 		<script>
 			checkSupport();
 		</script>
-		<div id="svelte">%svelte.body%</div>
+		<div id="svelte" hidden>%svelte.body%</div>
 	</body>
 </html>
