@@ -10,7 +10,6 @@
     let conn: Connection
     let conn_connected = false;
     let connection_check_interval;
-    let msg = '{"event": "forward"}';
     let last_msg_check_interval;
 
     let state = {
@@ -224,16 +223,15 @@
 
 <!-- HTML -->
 <div>
-    <h4>Currently connected: {conn_connected}</h4>
-    <button type="button" class="btn btn-primary" on:click={connectBluetooth}>Connect to device</button>
-    <button type="button" class="btn btn-primary" on:click={disconnectBluetooth}>Disconnect device</button>
+    <div style="border-bottom: 3px solid black; padding-bottom: 10px; padding-left: 5px">
+        <h4>Currently connected: {conn_connected}</h4>
+        <button type="button" style="margin-bottom: 2%; margin-right: 2%" class="btn btn-primary" on:click={connectBluetooth}>Connect to device</button>
+        <button type="button" style="margin-bottom: 2%" class="btn btn-primary" on:click={disconnectBluetooth}>Disconnect device</button>
+    </div>
     <br/>
     {#if conn_connected}
-        <input bind:value={msg}/>
-        <button type="button" class="btn btn-primary" on:click={sendMessage}>Send dbg msg</button>
-
-        <h3>Drive Controls</h3>
-        <div id="drive-controls">
+        <h3 style="text-align: center">Drive Controls</h3>
+        <div id="drive-controls" class="center">
             <p></p>
             <button type="button" id="forward-btn" class="out-btn ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-up"></i></button>
             <p></p>
@@ -244,14 +242,14 @@
             <button type="button" id="back-btn" class="out-btn ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-down"></i></button>
             <p></p>
         </div>
-        <h3>Ultrasonic</h3>
-        <div id="ultrasonic-controls">
+        <h3 style="text-align: center;">Ultrasonic</h3>
+        <div id="ultrasonic-controls" class="center">
             <button type="button" id="ultrasonic-left-btn" class="ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-left"></i></button>
             <button type="button" class="ctrl-btn btn btn-primary" on:click={() => conn.writeValue('ultra-reset')}><i class="fa-solid fa-ban"></i></button>
             <button type="button" id="ultrasonic-right-btn" class="ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-right"></i></button>
         </div>
-        <h3>Linetracking</h3>
-        <div id="linetracking-controls">
+        <h3 style="text-align: center">Linetracking</h3>
+        <div id="linetracking-controls" class="center">
             <button type="button" class="ctrl-btn btn btn-primary" on:click={() => conn.writeValue('line-track-start')}><i class="fa-solid fa-car-side"></i>&nbsp;<i class="fa-solid fa-grip-lines"></i></button>
             <button type="button" class="ctrl-btn btn btn-primary" on:click={() => conn.writeValue('line-track-stop')}><i class="fa-solid fa-ban"></i>&nbsp;<i class="fa-solid fa-grip-lines"></i></button>
         </div>
@@ -260,6 +258,11 @@
 
 <!-- CSS -->
 <style lang="css">
+    .center {
+        margin: auto;
+        left: 50%;
+    }
+
     #drive-controls {
         justify-content: center;
         display: grid;
@@ -268,34 +271,39 @@
         max-width: 90%;
         min-width: 0;
         min-height: 0;
+        aspect-ratio: 1/1;
+    }
+
+    .fa-solid {
+        aspect-ratio: 1/1;
+        font-size: 4vw;
     }
 
     .ctrl-btn {
         overflow: hidden;
         min-width: 0;
-        margin: 3px;
-    }
-
-    .out-btn {
-        width: 140%;
-        margin-left: -20%;
+        margin: 3%;
     }
 
     #ultrasonic-controls {
+        justify-content: center;
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         grid-template-rows: [row] auto;
         max-width: 90%;
-        min-width: 0;
-        min-height: 0;
+        min-width: 50px;
+        min-height: 50px;
+        aspect-ratio: 1/1;
     }
 
     #linetracking-controls {
+        justify-content: center;
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         grid-template-rows: [row] auto;
         max-width: 90%;
-        min-width: 0;
-        min-height: 0;
+        min-width: 50px;
+        min-height: 50px;
+        aspect-ratio: 1/1;
     }
 </style>
