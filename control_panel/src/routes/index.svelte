@@ -11,14 +11,19 @@
     let conn_connected = false;
     let connection_check_interval;
     let last_msg_check_interval;
-    let is_landscape = false;
+    let is_landscape = true;
     let ignore_landscape_warning = false;
 
     let state = {
         ultrasonic: {
-            position: 90,
+            position: 0,
+            distance: 0,
         },
-        linetracking: []
+        linetracking: {
+            left: false,
+            middle: false,
+            right: false,
+        }
     }
 
     function connValid(): boolean {
@@ -57,28 +62,23 @@
         if (!last_msg_check_interval) {
             last_msg_check_interval = setInterval(() => {
                 if (conn_connected) {
-                    let msg = conn.lastMessage;
-                    if (typeof msg !== 'undefined') {
-                        while (typeof msg !== 'undefined') {
-                            let msg_obj = JSON.parse(msg);
-                            if (typeof msg_obj.error !== 'undefined') {
-                                console.log(msg_obj.error);
-                                msg = conn.lastMessage;
-                                continue;
-                            }
-                            if (msg_obj.type === 'status') {
-                                if (msg_obj.category === 'ultrasonic') {
-                                    state.ultrasonic.position = msg_obj.data.pos;
-                                    console.info(msg_obj.data);
-                                } else if (msg_obj.category === 'linetracking') {
-                                    state.linetracking = msg_obj.data;
-                                    console.info(msg_obj.data);
-                                } else {
-                                    console.log(`Unknown message type: ${msg_obj.type}`);
-                                }
-                            }
-                            msg = conn.lastMessage;
+                    let msg = conn.lastMessage();
+                    while (typeof msg !== 'undefined') {
+                        let msg_obj = JSON.parse(msg);
+                        if (typeof msg_obj.error !== 'undefined') {
+                            console.error(msg_obj.error);
+                            msg = conn.lastMessage();
+                            continue;
                         }
+                        if (msg_obj.type === 'status') {
+                            state.ultrasonic.position = msg_obj.ultrasonic.pos ?? 0;
+                            state.ultrasonic.distance = msg_obj.ultrasonic.distance ?? 0;
+                            state.linetracking.left = msg_obj.linetracking[0] ?? false;
+                            state.linetracking.middle = msg_obj.linetracking[1] ?? false;
+                            state.linetracking.right = msg_obj.linetracking[2] ?? false;
+                            console.log(state);
+                        }
+                        msg = conn.lastMessage();
                     }
                 }
             }, 100);
@@ -171,9 +171,6 @@
                 console.warn(`Unsupported gamepad ${gamepad.id}`);
             }
         });
-        if (navigator.getGamepads().length > 0) {
-            alert('A gamepad was detected. If you want to use it, please press a random button on the gamepad.');
-        }
         setInterval(() => {
             if (connValid() && conn.isConnected()) {
                 if (navigator.getGamepads().length > 0) {
@@ -212,9 +209,14 @@
             }
         }, 50)
 
+        is_landscape = screen.orientation.type.includes('landscape');
         setInterval(() => {
             is_landscape = screen.orientation.type.includes('landscape');
         }, 100);
+
+        if (navigator.getGamepads().length > 0) {
+            setTimeout(() => alert('A gamepad was detected. If you want to use it, please press a random button on the gamepad.'), 100);
+        }
     })
 </script>
 
@@ -234,6 +236,7 @@
             <div id="controls">
                 <div class="base-ctrl-item">
                     <h3 style="text-align: center">Ultrasonic</h3>
+                    <h3 style="text-align: center">Position: {state.ultrasonic.position}, Distance: {state.ultrasonic.distance}</h3>
                     <div id="ultrasonic-controls" class="base-ctrl-group">
                         <button type="button" id="ultrasonic-left-btn" class="base-ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-left"></i></button>
                         <button type="button" class="base-ctrl-btn btn btn-primary" on:click={() => conn.writeValue('ultra-reset')}><i class="fa-solid fa-ban"></i></button>

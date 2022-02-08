@@ -60,42 +60,49 @@ export class Connection {
         }
     }
 
+    _resetMsgQueue() {
+        this.#msg_queue_constructing = '';
+        this.#msg_queue_constructing_timeout -= 50;
+    }
+
     startNotifications() {
         this.#notification_characteristic.startNotifications().then(() => {
             this.#notification_characteristic.addEventListener('characteristicvaluechanged', (event) => {
                 const decoder = new TextDecoder();
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
-                let msg = decoder.decode(event.target.value);
-                msg = msg.trim();
+                const msg = decoder.decode(event.target.value).trim();
+
+                if (this.#msg_queue_constructing_timeout - Date.now() > 20) {
+                    this._resetMsgQueue();
+                }
 
                 // check if message is split over multiple packets
                 if (msg.length > 0) {
                     if (isJsonString(msg)) {
                         this.#msg_queue.push(msg);
+                        this._resetMsgQueue();
+                        return;
                     } else {
-                        // Timed out
-                        if (this.#msg_queue_constructing_timeout !== 0 && Date.now() - this.#msg_queue_constructing_timeout > 50) {
-                            this.#msg_queue_constructing = '';
-                        }
-                        // check if start of message
-                        if (this.#msg_queue_constructing.length === 0) {
+                        if (this.#msg_queue_constructing === '') {
                             if (msg.startsWith('{') || msg.startsWith('[')) {
                                 this.#msg_queue_constructing = msg;
                                 this.#msg_queue_constructing_timeout = Date.now();
+                                return;
                             } else {
-                                console.warn(`Message not starting with { or [: ${msg}`);
+                                console.warn(`Received msg that doesn't start with { or [: ${msg}`);
+                                this._resetMsgQueue();
                             }
+                        }
+
+                        this.#msg_queue_constructing = this.#msg_queue_constructing.concat(msg);
+                        if (isJsonString(this.#msg_queue_constructing)) {
+                            this.#msg_queue.push(this.#msg_queue_constructing);
+                            this._resetMsgQueue();
+                            return;
                         } else {
-                            this.#msg_queue_constructing += this.#msg_queue_constructing.concat(msg);
-                            // check if end of message
-                            if (isJsonString(this.#msg_queue_constructing)) {
-                                this.#msg_queue.push(this.#msg_queue_constructing);
-                                this.#msg_queue_constructing = '';
-                                this.#msg_queue_constructing_timeout = 0;
-                            } else {
-                                this.#msg_queue_constructing_timeout = Date.now();
-                            }
+                            this.#msg_queue_constructing_timeout = Date.now();
+                            return;
                         }
                     }
                 }
@@ -153,7 +160,7 @@ export class Connection {
         return this.#notification_characteristic;
     }
 
-    get lastMessage(): string {
+    lastMessage(): string {
         if (this.#msg_queue.length > 0) {
             return this.#msg_queue.shift();
         } else {

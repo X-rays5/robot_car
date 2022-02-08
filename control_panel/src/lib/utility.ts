@@ -1,11 +1,10 @@
 export function isJsonString(str: string): boolean {
+    if (typeof str !== 'string') return false;
+
     try {
-       const o = JSON.parse(str);
-        if (o && typeof o === "object") {
-            return o;
-        }
+        const res = JSON.parse(str);
+        return (typeof res === "object" && res !== null);
     } catch (e) {
         return false;
     }
-    return true;
 }
