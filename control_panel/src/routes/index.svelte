@@ -213,7 +213,7 @@
         }, 50)
 
         setInterval(() => {
-            is_landscape = window.innerWidth > window.innerHeight;
+            is_landscape = screen.orientation.type.includes('landscape');
         }, 100);
     })
 </script>
@@ -222,7 +222,7 @@
 <svelte:window on:keydown={keyDown} on:keyup={keyUp}/>
 
 <!-- HTML -->
-<div id="idx-d">
+<div>
     {#if is_landscape || ignore_landscape_warning}
         <div style="border-bottom: 3px solid black; padding-bottom: 10px; padding-left: 5px">
             <h4>Currently connected: {conn_connected}</h4>
@@ -232,28 +232,34 @@
         <br/>
         {#if true}
             <div id="controls">
-                <h3 style="text-align: center">Drive Controls</h3>
-                <div id="drive-controls">
-                    <p></p>
-                    <button type="button" id="forward-btn" class="btn btn-primary"><i class="fa-solid fa-arrow-up"></i></button>
-                    <p></p>
-                    <button type="button" id="left-btn" class="btn btn-primary"><i class="fa-solid fa-arrow-left"></i></button>
-                    <button type="button" class="btn btn-primary" on:click={() => conn.writeValue('stop')}><i class="fa-solid fa-ban"></i></button>
-                    <button type="button" id="right-btn" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i></button>
-                    <p></p>
-                    <button type="button" id="back-btn" class="ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-down"></i></button>
-                    <p></p>
+                <div class="base-ctrl-item">
+                    <h3 style="text-align: center">Ultrasonic</h3>
+                    <div id="ultrasonic-controls" class="base-ctrl-group">
+                        <button type="button" id="ultrasonic-left-btn" class="base-ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-left"></i></button>
+                        <button type="button" class="base-ctrl-btn btn btn-primary" on:click={() => conn.writeValue('ultra-reset')}><i class="fa-solid fa-ban"></i></button>
+                        <button type="button" id="ultrasonic-right-btn" class="base-ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
                 </div>
-                <h3>Ultrasonic</h3>
-                <div id="ultrasonic-controls">
-                    <button type="button" id="ultrasonic-left-btn" class="btn btn-primary"><i class="fa-solid fa-arrow-left"></i></button>
-                    <button type="button" class="ctrl-btn btn btn-primary" on:click={() => conn.writeValue('ultra-reset')}><i class="fa-solid fa-ban"></i></button>
-                    <button type="button" id="ultrasonic-right-btn" class="btn-primary"><i class="fa-solid fa-arrow-right"></i></button>
+                <div class="base-ctrl-item">
+                    <h3 style="text-align: center">Drive Controls</h3>
+                    <div id="drive-controls" class="base-ctrl-group">
+                        <p></p>
+                        <button type="button" id="forward-btn" class="base-ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-up"></i></button>
+                        <p></p>
+                        <button type="button" id="left-btn" class="base-ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-left"></i></button>
+                        <button type="button" class="base-ctrl-btn btn btn-primary" on:click={() => conn.writeValue('stop')}><i class="fa-solid fa-ban"></i></button>
+                        <button type="button" id="right-btn" class="base-ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-right"></i></button>
+                        <p></p>
+                        <button type="button" id="back-btn" class="base-ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-down"></i></button>
+                        <p></p>
+                    </div>
                 </div>
-                <h3>Linetracking</h3>
-                <div>
-                    <button type="button" class="btn btn-primary" on:click={() => conn.writeValue('line-track-start')}><i class="fa-solid fa-car-side"></i>&nbsp;<i class="fa-solid fa-grip-lines"></i></button>
-                    <button type="button" class="btn btn-primary" on:click={() => conn.writeValue('line-track-stop')}><i class="fa-solid fa-ban"></i>&nbsp;<i class="fa-solid fa-grip-lines"></i></button>
+                <div class="base-ctrl-item">
+                    <h3 style="text-align: center">Linetracking</h3>
+                    <div id="linetracking-controls" class="base-ctrl-group">
+                        <button type="button" class="base-ctrl-btn btn btn-primary" on:click={() => conn.writeValue('line-track-start')}><i class="fa-solid fa-car-side"></i>&nbsp;<i class="fa-solid fa-grip-lines"></i></button>
+                        <button type="button" class="base-ctrl-btn btn btn-primary" on:click={() => conn.writeValue('line-track-stop')}><i class="fa-solid fa-ban"></i>&nbsp;<i class="fa-solid fa-grip-lines"></i></button>
+                    </div>
                 </div>
             </div>
         {/if}
@@ -264,25 +270,48 @@
 </div>
 
 <!-- CSS -->
-<style lang="css">
-    #ign-land-btn {
-        position: absolute;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        top: 6rem;
-    }
+<style lang="less">
+  .btn {
+    margin: 1%;
+  }
 
-    #drive-controls {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        aspect-ratio: 1/1;
-        max-width: 30%;
-        max-height: 30%;
-        margin: auto;
-        left: 50%;
-    }
+  #ign-land-btn {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    top: 6rem;
+  }
 
-    .btn {
-        margin: 2%;
+  #controls {
+    margin: auto;
+    left: 50%;
+    width: 90%;
+  }
+
+  .base-ctrl-item {
+    margin: 1%;
+  }
+
+  .base-ctrl-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 40vw;
+    margin: auto;
+    left: 50%;
+  }
+
+  @media only screen and (min-width: 290px) {
+    .base-ctrl-btn {
+      font-size: 6vw;
     }
+  }
+
+  .base-ctrl-btn {
+    margin: 2%;
+    aspect-ratio: 1/1;
+  }
+
+  #linetracking-controls {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 </style>
