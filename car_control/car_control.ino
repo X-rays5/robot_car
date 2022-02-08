@@ -219,19 +219,11 @@ void loop() {
     {
       StaticJsonDocument<128> json;
       json["type"] = "status";
-      json["category"] = "ultrasonic";
-      json["data"]["pos"] = GetUltrasonicPos();
-      json["data"]["distance"] = CheckDistance();
-      serializeJson(json, Serial);
-    }
-    delay(1);
-    {
-      StaticJsonDocument<128> json;
-      json["type"] = "status";
-      json["category"] = "linetracking";
-      json["data"][0] = LINE_TRACKING_1;
-      json["data"][1] = LINE_TRACKING_2;
-      json["data"][2] = LINE_TRACKING_3;
+      json["ultrasonic"]["pos"] = GetUltrasonicPos();
+      json["ultrasonic"]["distance"] = CheckDistance();
+      json["linetracking"][0] = LINE_TRACKING_1 ? true : false;
+      json["linetracking"][1] = LINE_TRACKING_2 ? true : false;
+      json["linetracking"][2] = LINE_TRACKING_3 ? true : false;
       serializeJson(json, Serial);
     }
     time_since_update = millis();
