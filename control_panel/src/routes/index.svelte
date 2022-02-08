@@ -11,6 +11,8 @@
     let conn_connected = false;
     let connection_check_interval;
     let last_msg_check_interval;
+    let is_landscape = false;
+    let ignore_landscape_warning = false;
 
     let state = {
         ultrasonic: {
@@ -114,12 +116,6 @@
         }
     }
 
-    async function sendMessage() {
-        if (connValid() && conn.isConnected()) {
-            await conn.writeValue(msg);
-        }
-    }
-
     async function keyDown(e) {
         switch (e.keyCode) {
             case 65:
@@ -215,6 +211,10 @@
                 }
             }
         }, 50)
+
+        setInterval(() => {
+            is_landscape = window.innerWidth > window.innerHeight;
+        }, 100);
     })
 </script>
 
@@ -222,88 +222,67 @@
 <svelte:window on:keydown={keyDown} on:keyup={keyUp}/>
 
 <!-- HTML -->
-<div>
-    <div style="border-bottom: 3px solid black; padding-bottom: 10px; padding-left: 5px">
-        <h4>Currently connected: {conn_connected}</h4>
-        <button type="button" style="margin-bottom: 2%; margin-right: 2%" class="btn btn-primary" on:click={connectBluetooth}>Connect to device</button>
-        <button type="button" style="margin-bottom: 2%" class="btn btn-primary" on:click={disconnectBluetooth}>Disconnect device</button>
-    </div>
-    <br/>
-    {#if conn_connected}
-        <h3 style="text-align: center">Drive Controls</h3>
-        <div id="drive-controls" class="center">
-            <p></p>
-            <button type="button" id="forward-btn" class="out-btn ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-up"></i></button>
-            <p></p>
-            <button type="button" id="left-btn" class="ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-left"></i></button>
-            <button type="button" class="ctrl-btn btn btn-primary" on:click={() => conn.writeValue('stop')}><i class="fa-solid fa-ban"></i></button>
-            <button type="button" id="right-btn" class="ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-right"></i></button>
-            <p></p>
-            <button type="button" id="back-btn" class="out-btn ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-down"></i></button>
-            <p></p>
+<div id="idx-d">
+    {#if is_landscape || ignore_landscape_warning}
+        <div style="border-bottom: 3px solid black; padding-bottom: 10px; padding-left: 5px">
+            <h4>Currently connected: {conn_connected}</h4>
+            <button type="button" class="btn btn-primary" on:click={connectBluetooth}>Connect to device</button>
+            <button type="button" class="btn btn-primary" on:click={disconnectBluetooth}>Disconnect device</button>
         </div>
-        <h3 style="text-align: center;">Ultrasonic</h3>
-        <div id="ultrasonic-controls" class="center">
-            <button type="button" id="ultrasonic-left-btn" class="ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-left"></i></button>
-            <button type="button" class="ctrl-btn btn btn-primary" on:click={() => conn.writeValue('ultra-reset')}><i class="fa-solid fa-ban"></i></button>
-            <button type="button" id="ultrasonic-right-btn" class="ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-right"></i></button>
-        </div>
-        <h3 style="text-align: center">Linetracking</h3>
-        <div id="linetracking-controls" class="center">
-            <button type="button" class="ctrl-btn btn btn-primary" on:click={() => conn.writeValue('line-track-start')}><i class="fa-solid fa-car-side"></i>&nbsp;<i class="fa-solid fa-grip-lines"></i></button>
-            <button type="button" class="ctrl-btn btn btn-primary" on:click={() => conn.writeValue('line-track-stop')}><i class="fa-solid fa-ban"></i>&nbsp;<i class="fa-solid fa-grip-lines"></i></button>
-        </div>
+        <br/>
+        {#if true}
+            <div id="controls">
+                <h3 style="text-align: center">Drive Controls</h3>
+                <div id="drive-controls">
+                    <p></p>
+                    <button type="button" id="forward-btn" class="btn btn-primary"><i class="fa-solid fa-arrow-up"></i></button>
+                    <p></p>
+                    <button type="button" id="left-btn" class="btn btn-primary"><i class="fa-solid fa-arrow-left"></i></button>
+                    <button type="button" class="btn btn-primary" on:click={() => conn.writeValue('stop')}><i class="fa-solid fa-ban"></i></button>
+                    <button type="button" id="right-btn" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i></button>
+                    <p></p>
+                    <button type="button" id="back-btn" class="ctrl-btn btn btn-primary"><i class="fa-solid fa-arrow-down"></i></button>
+                    <p></p>
+                </div>
+                <h3>Ultrasonic</h3>
+                <div id="ultrasonic-controls">
+                    <button type="button" id="ultrasonic-left-btn" class="btn btn-primary"><i class="fa-solid fa-arrow-left"></i></button>
+                    <button type="button" class="ctrl-btn btn btn-primary" on:click={() => conn.writeValue('ultra-reset')}><i class="fa-solid fa-ban"></i></button>
+                    <button type="button" id="ultrasonic-right-btn" class="btn-primary"><i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+                <h3>Linetracking</h3>
+                <div>
+                    <button type="button" class="btn btn-primary" on:click={() => conn.writeValue('line-track-start')}><i class="fa-solid fa-car-side"></i>&nbsp;<i class="fa-solid fa-grip-lines"></i></button>
+                    <button type="button" class="btn btn-primary" on:click={() => conn.writeValue('line-track-stop')}><i class="fa-solid fa-ban"></i>&nbsp;<i class="fa-solid fa-grip-lines"></i></button>
+                </div>
+            </div>
+        {/if}
+    {:else}
+        <h1 style="text-align: center">It's advised to only use this site in landscape mode</h1>
+        <button type="button" id="ign-land-btn" class="btn btn-danger" on:click={() => ignore_landscape_warning = true}>Ignore warning</button>
     {/if}
 </div>
 
 <!-- CSS -->
 <style lang="css">
-    .center {
+    #ign-land-btn {
+        position: absolute;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        top: 6rem;
+    }
+
+    #drive-controls {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        aspect-ratio: 1/1;
+        max-width: 30%;
+        max-height: 30%;
         margin: auto;
         left: 50%;
     }
 
-    #drive-controls {
-        justify-content: center;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        grid-template-rows: [row] auto [row] auto [row] auto [row];
-        max-width: 90%;
-        min-width: 0;
-        min-height: 0;
-        aspect-ratio: 1/1;
-    }
-
-    .fa-solid {
-        aspect-ratio: 1/1;
-        font-size: 4vw;
-    }
-
-    .ctrl-btn {
-        overflow: hidden;
-        min-width: 0;
-        margin: 3%;
-    }
-
-    #ultrasonic-controls {
-        justify-content: center;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        grid-template-rows: [row] auto;
-        max-width: 90%;
-        min-width: 50px;
-        min-height: 50px;
-        aspect-ratio: 1/1;
-    }
-
-    #linetracking-controls {
-        justify-content: center;
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: [row] auto;
-        max-width: 90%;
-        min-width: 50px;
-        min-height: 50px;
-        aspect-ratio: 1/1;
+    .btn {
+        margin: 2%;
     }
 </style>
