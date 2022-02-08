@@ -271,8 +271,10 @@
 
 <!-- CSS -->
 <style lang="less">
-  .btn {
-    margin: 1%;
+  @media only screen and (max-width: 320px) {
+    .btn {
+      margin-bottom: 2%;
+    }
   }
 
   #ign-land-btn {
