@@ -232,7 +232,7 @@
             <button type="button" class="btn btn-primary" on:click={disconnectBluetooth}>Disconnect device</button>
         </div>
         <br/>
-        {#if true}
+        {#if conn_connected}
             <div id="controls">
                 <div class="base-ctrl-item">
                     <h3 style="text-align: center">Ultrasonic</h3>
