@@ -16,7 +16,7 @@
     "@sveltejs/adapter-cloudflare": "1.0.0-next.9",
     "@sveltejs/adapter-node": "1.0.0-next.67",
     "@sveltejs/adapter-static": "1.0.0-next.26",
-    "@sveltejs/kit": "1.0.0-next.251",
+    "@sveltejs/kit": "1.15.2",
 	"@sveltejs/vite-plugin-svelte": "1.0.0-next.32",
     "@types/web-bluetooth": "0.0.12",
     "@typescript-eslint/eslint-plugin": "5.10.1",
