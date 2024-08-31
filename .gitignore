@@ -2,6 +2,7 @@
 **/node_modules
 **/public_html
 **/package-lock.json
+**/pnpm-lock.yaml
 **/.idea
 **/.vscode
 **/.theia
