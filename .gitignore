@@ -1,4 +1,8 @@
-**/.svelte-kit
 **/build
 **/node_modules
 **/public_html
+**/package-lock.json
+**/.idea
+**/.vscode
+**/.theia
+**/.svelte-kit
